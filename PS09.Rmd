@@ -18,7 +18,11 @@ knitr::opts_chunk$set(
   )
 set.seed(76)
 
-library(tidyverse)
+
+library(stats)
+library(mosaic)
+library(ggplot2)
+library(readr)
 ```
 
 
@@ -62,20 +66,52 @@ ggplot(NULL, aes(x=x1, y=x2, col=cluster)) +
 
 1. Run KMC 10 times on `observations_1` and comment on the consistency of the
 results.
-1. Speculate on the root cause of any consistency or inconsistency in the
-results.
-1. Run KMC 10 times on `observations_2` and comment on the consistentcy of the
-results.
-1. Speculate on the root cause of any consistency or inconsistency in the
+
+```{r}
+#simply runs k-means on a dataset
+cluster <- function (k, data){
+  output <- kmeans(data, centers=k)
+  clusters <- output$cluster
+  centers <- output$centers
+}
+
+clusters<-do(10)*cluster(2,observations_1)
+
+ggplot(clusters,aes(x=x1,y=x2))+geom_point()
+```
+ 
+The results don't seem to be consistent at all.  As you can see in the points above, the less variance there is between sets of points, the more consistency there is - and there is no central location that the points are centered around.
+
+
+2. Speculate on the root cause of any consistency or inconsistency in the
 results.
 
-**Answers**:
+```{r}
+ggplot(observations_1,aes(x=x1,y=x2))+geom_point()
+```
 
-1.
-1.
-1.
-1.
+Looking at the outlier points in particular (the ones that are furthest away from the other 3 of their cluster), I am willing to guess that they are the result of a couple of points (or possibly even one) being sorted into the wrong cluster.  We can further this claim by looking at the plot of the observations_1 dataset and observing that there are no meaningful clusters present.
 
+3. Run KMC 10 times on `observations_2` and comment on the consistentcy of the
+results.
+
+```{r}
+clusters2<-do(100)*cluster(2,observations_2)
+
+ggplot(clusters2,aes(x=x1,y=x2))+geom_point()
+
+```
+
+Whoa! The cluster centers are completely consistent - they are exactly the same in each instance.  I didn't believe it, so I increased the n to 100, and got the same result: perfectly consistent.
+
+4. Speculate on the root cause of any consistency or inconsistency in the
+results.
+
+```{r}
+ggplot(observations_2,aes(x=x1,y=x2))+geom_point()
+```
+
+The data is already broken up into 2 clusters!  This eliminates randomness when we call kmeans() on our dataset and causes the centers to be the same every time.
 
 
 # Bonus question: Code your own
